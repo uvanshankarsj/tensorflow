@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>TensorFlow.js browser example</title>
+
+    <!-- Load TensorFlow.js from a script tag -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  </head>
+  <body onload="dostyletransfer()">
+    <h1>TensorFlow.js example</h1>
+    <h2>Open the console to see the results.</h2>
+    <img id="baseimage" src="image.jpg" width="500">
+    <img id="styleimage" src="styleiamge.jpg" width="500">
+    <canvas id="stylizedimage" width="500" height="500"></canvas>
+    
+    <script>
+    // Define a model for linear regression. The script tag makes `tf` available
+    // as a global variable.
+    async function loadmodel(){
+    return tf.loadGraphModel('style_transfer/model.json');
+    }
+    
+    async function dostyletransfer(){
+      console.log("working");
+      const model= await loadmodel();
+
+      const image=document.getElementById("baseimage");
+      const styleimage=document.getElementById("styleimage");
+
+      const imagetensor=preprocessing(image);
+      const styleimagetensor=preprocessing(styleimage);
+      tf.setBackend('cpu');
+      let result=model.execute([imagetensor,styleimagetensor]).print();
+      let canvas=document.getElementById("stylizedimage")
+      tf.browser.toPixels(tf.squeeze(result),canvas)
+      console.log("completed")
+    }
+
+    function preprocessing(imagedata){
+      let imagetensor=tf.browser.fromPixels(imagedata);
+      const offset=tf.scalar(255.0);
+      const normalized=tf.scalar(1.0).sub(imagetensor.div(offset));
+      const batched=normalized.expandDims(0);
+      return batched;
+    }
+
+    
+    </script>
+  </body>
+</html>
